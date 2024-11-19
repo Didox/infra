@@ -191,3 +191,44 @@ Este diagrama representa a infraestrutura escalável planejada na AWS.
 **Total Mensal Atualizado**: **$1.055,73/mês**
 
 ---
+
+### **Configuração do Servidor EC2 para APIs Externas**
+1. **Função**:
+   - Este servidor será dedicado a configurar e acessar APIs externas que necessitam de bibliotecas assinadas.
+   - Ele será configurado para oferecer alta disponibilidade e suportar o tráfego esperado.
+
+2. **Configuração Proposta**:
+   - Tipo de instância: **t3.medium** (2 vCPUs, 4 GB RAM).
+   - Sistema operacional: Amazon Linux 2 ou Ubuntu (ajustável conforme o projeto).
+   - Armazenamento: 50 GB de EBS (General Purpose, gp3).
+
+3. **Custo Estimado**:
+   - **Instância**: $0,0416/hora x 730 horas/mês ≈ **$30/mês**.
+   - **Armazenamento**: 50 GB x $0,08/GB/mês ≈ **$4/mês**.
+
+**Total Servidor EC2 para APIs Externas**: **$34/mês**.
+
+---
+
+### **Resumo Atualizado dos Custos Mensais**
+
+| Serviço                      | Custo Estimado |
+|------------------------------|----------------|
+| Aurora Serverless            | $750           |
+| EC2 Auto Scaling (2-6 nós)   | $122           |
+| Elastic Load Balancer (ALB)  | $44            |
+| Redis (ElastiCache)          | $38            |
+| SQS                          | $1,73          |
+| Transferência Interna        | $10            |
+| Transferência Saída (1 TB)   | $90            |
+| Servidor EC2 para APIs       | $34            |
+
+**Total Mensal Atualizado**: **$1.089,73/mês**
+
+---
+
+### **Nova Arquitetura com EC2 para APIs**
+
+Este servidor será integrado ao restante da arquitetura da seguinte maneira:
+1. O **ALB** poderá distribuir chamadas para o servidor de APIs externas, caso necessário.
+2. O **Servidor EC2 (API)** acessará diretamente as bibliotecas assinadas e os serviços externos, servindo como um proxy para o sistema.
