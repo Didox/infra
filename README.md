@@ -93,7 +93,7 @@
 
 ---
 
-### **Proposta com Audiência e Carga**
+### **Proposta com Audiência e Carga atual e servidores escaláveis**
 1. **Histórico**:
    - Você inicialmente mencionou uma carga de **100 transações por minuto**.
    - Isso equivale a **144.000 transações por dia** ou **4,32 milhões de transações por mês**.
