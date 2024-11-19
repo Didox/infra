@@ -176,6 +176,8 @@ Este diagrama representa a infraestrutura escalável planejada na AWS.
 
 ![Infraestrutura Escalável na AWS](https://raw.githubusercontent.com/Didox/infra/main/output.png)
 
+---
+
 ### **Resumo Atualizado dos Custos Mensais**
 
 | Serviço                      | Custo Estimado |
@@ -207,6 +209,12 @@ Este diagrama representa a infraestrutura escalável planejada na AWS.
    - **Armazenamento**: 50 GB x $0,08/GB/mês ≈ **$4/mês**.
 
 **Total Servidor EC2 para APIs Externas**: **$34/mês**.
+
+---
+
+# Infraestrutura Escalável na AWS com API de integração com parceiros
+
+![Infraestrutura Escalável na AWS com servidor para API de integração com parceiros](https://raw.githubusercontent.com/Didox/infra/main/output2.png)
 
 ---
 
