@@ -93,86 +93,95 @@
 
 ---
 
-## **Infraestrutura Escalável AWS com Base na Paratus Cloud**
+### **Proposta com Audiência e Carga**
+1. **Histórico**:
+   - Você inicialmente mencionou uma carga de **100 transações por minuto**.
+   - Isso equivale a **144.000 transações por dia** ou **4,32 milhões de transações por mês**.
 
-### 1. **Banco de Dados: Amazon Aurora Serverless v2**
-O Aurora Serverless v2 é ideal para atender à necessidade de escalabilidade automática, ajustando a capacidade com base na carga.
+2. **Carga no Banco de Dados**:
+   - Cada transação pode envolver múltiplas consultas ao banco de dados (leitura/escrita).
+   - Supondo que cada transação gere, em média, **5 consultas**, o banco de dados precisa lidar com **21,6 milhões de operações mensais**.
 
-- **Configuração Proposta**:
-  - Aurora Serverless v2.
-  - **Capacidade**: Escala de 2 ACUs a 16 ACUs (4 a 32 vCPUs, 4 GB a 32 GB RAM).
-  - **Armazenamento Inicial**: 500 GB (autoescalável até 128 TB).
+3. **Servidores de Aplicação**:
+   - Os servidores devem processar **100 requisições por minuto**, incluindo validações e chamadas ao banco.
 
+4. **Transferência de Dados**:
+   - Supondo que cada transação envolva a transferência de 5 KB (banco + resposta), o total seria:
+     - **100/min × 5 KB × 60 min × 24 horas × 30 dias ≈ 1 TB/mês**.
+
+---
+
+### **Impacto na Configuração**
+Com base nesses dados, os custos podem aumentar para atender à carga:
+
+#### 1. **Banco de Dados: Amazon Aurora Serverless v2**
+- Aurora Serverless escalonará conforme a demanda de leitura e escrita.
+- Para **21,6 milhões de operações por mês**, é razoável esperar que o banco funcione com uma média de **8 ACUs** (em vez de 4).
+  - **Custo Atualizado**:
+    - 8 ACUs x $0,12/ACU/hora x 730 horas ≈ **$700/mês**.
+  - Armazenamento e backups permanecem os mesmos: **$50/mês**.
+
+**Total Banco de Dados**: **$750/mês**.
+
+---
+
+#### 2. **Servidores de Aplicação: EC2 Auto Scaling Group**
+- Para atender 100 transações por minuto:
+  - **Configuração Base**: 2 instâncias `t3.medium`.
+  - **Escalabilidade**: Até 6 instâncias durante picos.
+
+- **Custo Atualizado**:
+  - Base (2 instâncias): $0,0416 x 730 x 2 ≈ **$61/mês**.
+  - Escaláveis (4 instâncias): $0,0416 x 730 x 0,5 (50% do tempo) ≈ **$61/mês**.
+
+**Total Servidores**: **$122/mês**.
+
+---
+
+#### 3. **Redis (ElastiCache)**
+Redis lidará com consultas repetitivas, ajudando a aliviar o banco de dados.
+
+- Redis pode ser mantido em `cache.t3.medium` para suportar o volume.
 - **Custo Estimado**:
-  - **ACUs (2-16)**: $0,12/ACU/hora, considerando uso médio de 4 ACUs por 730 horas/mês ≈ **$350/mês**.
-  - **Armazenamento**: $0,10/GB/mês x 500 GB = **$50/mês**.
-  - **Total Banco de Dados**: **$400/mês**.
+  - $0,052/hora x 730 horas ≈ **$38/mês**.
 
 ---
 
-### 2. **Servidores de Aplicação: EC2 Auto Scaling Group**
-Para os servidores de aplicação, configuramos um Auto Scaling Group com instâncias escaláveis conforme a carga.
+#### 4. **Elastic Load Balancer (ALB)**
+O ALB distribuirá as requisições para as instâncias de aplicação.
 
-- **Configuração Proposta**:
-  - EC2 Auto Scaling com `t3.medium` (2 vCPUs, 4 GB RAM).
-  - **Mínimo de Instâncias**: 2 (para alta disponibilidade).
-  - **Máximo de Instâncias**: 4 (para atender picos).
+- **Custo Atualizado**:
+  - Base: $18/mês.
+  - Transferência: $0,008/GB x 1 TB ≈ **$26/mês**.
 
-- **Custo Estimado**:
-  - **Instâncias Base (2)**: $0,0416/hora x 730 horas ≈ **$61/mês**.
-  - **Instâncias Escaláveis (2 adicionais)**: Escaladas por 20% do tempo (146 horas/mês):
-    - $0,0416/hora x 2 x 146 horas ≈ **$12/mês**.
-  - **Total Servidores**: **$73/mês**.
+**Total ALB**: **$44/mês**.
 
 ---
 
-### 3. **Balanceador de Carga: Elastic Load Balancer (ALB)**
-Distribui o tráfego de forma automática entre os servidores de aplicação.
-
-- **Configuração Proposta**:
-  - Application Load Balancer (ALB).
-  - **Custo Estimado**:
-    - $18/mês + $0,008/GB transferido (estimando 1 TB de tráfego) ≈ **$26/mês**.
+#### 5. **Filas (Amazon SQS)**
+Com o volume de 4,32 milhões de mensagens mensais:
+- $0,40/milhão x 4,32 ≈ **$1,73/mês**.
 
 ---
 
-### 4. **Cache: Amazon ElastiCache com Redis**
-O Redis gerenciado reduz a carga no banco de dados e aumenta o desempenho para consultas repetitivas.
-
-- **Configuração Proposta**:
-  - ElastiCache com `cache.t3.small` (1 vCPU, 2 GB RAM).
-  - **Custo Estimado**:
-    - $0,026/hora x 730 horas ≈ **$19/mês**.
+#### 6. **Transferência de Dados**
+- **Interno (entre serviços)**: $0,01/GB para 1 TB ≈ **$10/mês**.
+- **Saída (para a internet)**: $0,09/GB x 1 TB ≈ **$90/mês**.
 
 ---
 
-### 5. **Filas de Processamento: Amazon SQS**
-Gerencia tarefas assíncronas para comunicações internas e operações de longa duração.
-
-- **Configuração Proposta**:
-  - Amazon SQS.
-  - **Custo Estimado**:
-    - 1 milhão de mensagens por mês = $0,40/mês.
-
----
-
-### 6. **Transferência de Dados**
-- **Interna (entre serviços)**: $0,01/GB para 1 TB ≈ **$10/mês**.
-- **Saída (para a internet)**: 1 TB x $0,09/GB ≈ **$90/mês**.
-
----
-
-## **Resumo de Custos Mensais**
+### **Resumo Atualizado dos Custos Mensais**
 
 | Serviço                      | Custo Estimado |
 |------------------------------|----------------|
-| Aurora Serverless            | $400           |
-| EC2 Auto Scaling (2-4 nós)   | $73            |
-| Elastic Load Balancer (ALB)  | $26            |
-| Redis (ElastiCache)          | $19            |
-| SQS                          | $0,40          |
+| Aurora Serverless            | $750           |
+| EC2 Auto Scaling (2-6 nós)   | $122           |
+| Elastic Load Balancer (ALB)  | $44            |
+| Redis (ElastiCache)          | $38            |
+| SQS                          | $1,73          |
 | Transferência Interna        | $10            |
 | Transferência Saída (1 TB)   | $90            |
 
-**Total Mensal (Infraestrutura Escalável)**: **$618,40/mês**
+**Total Mensal Atualizado**: **$1.055,73/mês**
 
+---
