@@ -1,4 +1,4 @@
-# Custo pagasó sistema atual na AWS
+# Custo Pagaso sistema atual na AWS
 
 ### 1. **Wireguard**
 - **Configuração Atual**:
