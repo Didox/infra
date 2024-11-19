@@ -170,6 +170,12 @@ Com o volume de 4,32 milhões de mensagens mensais:
 
 ---
 
+# Infraestrutura Escalável na AWS
+
+Este diagrama representa a infraestrutura escalável planejada na AWS.
+
+![Infraestrutura Escalável na AWS](infraestrutura.png)
+
 ### **Resumo Atualizado dos Custos Mensais**
 
 | Serviço                      | Custo Estimado |
