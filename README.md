@@ -174,7 +174,7 @@ Com o volume de 4,32 milhões de mensagens mensais:
 
 Este diagrama representa a infraestrutura escalável planejada na AWS.
 
-![Infraestrutura Escalável na AWS](infraestrutura.png)
+![Infraestrutura Escalável na AWS](https://raw.githubusercontent.com/Didox/infra/main/output.png)
 
 ### **Resumo Atualizado dos Custos Mensais**
 
